@@ -1,5 +1,30 @@
 WeaponSlots = WeaponSlots || {}
 
+// Config
+local makechanges 			= "Make Changes"
+local makechangesfont		= "Trebuchet24" 
+local makechangesbtn 		= Color(41, 123, 207, 100)
+local makechangesbtnhover 	= Color(48, 133, 219, 220)
+
+local resetslots 			= "Reset"
+local resetslotsfont		= "Trebuchet24" 
+local resetbtn 				= Color(41, 123, 207, 100)
+local resetbtnhover 		= Color(48, 133, 219, 220)
+
+local close 				= "X"
+local closefont				= "Trebuchet24" 
+local closebtn 				= Color(255, 0, 0, 50)
+local closebtnhover 		= Color(255, 0, 0, 100)
+
+local slotsfont				= "Trebuchet24" 
+local slotsbtn 				= Color(41, 123, 207, 100)
+
+local framebg 				= Color(55, 55, 55, 255)
+local titlebarbg 			= Color(41, 123, 207, 100)
+
+local swepslotbg 			= Color(40, 40, 40, 100)
+local swepslotbghover 		= Color(55, 55, 55, 255)
+
 local function UpdateFile()
 	if !file.IsDir("weapons", "DATA") then
 		file.CreateDir("weapons")
@@ -71,23 +96,22 @@ concommand.Add("weapon_slots", function(ply, cmd, args)
 	end
 	fr.Paint = function(self, w, h)
 		surface.DrawOutlinedRect(1, 1, w, h)
-	    draw.RoundedBox(0, 0, 0, w, h, Color(40, 40, 40, 255))
-	    surface.SetDrawColor(41,123,207,200)
+	    draw.RoundedBox(0, 0, 0, w, h, framebg)
+	    surface.SetDrawColor(titlebarbg)
 		surface.DrawRect(1, 1, fr:GetWide() - 331, 29)
-		draw.SimpleTextOutlined( "Weapon Slots", "Trebuchet24", 5, 3, Color(255, 255, 255), 0, 0, 1, Color( 0, 0, 0, 255 ))
+		draw.SimpleTextOutlined( "Weapon Slots", "Trebuchet24", 5, 3, color_white, 0, 0, 1, color_black)
 	end
 	local cbtn = vgui.Create("DButton", fr)
 	cbtn:SetText("")
 	cbtn:SetSize(30, 30)
 	cbtn:SetPos(fr:GetWide() - cbtn:GetWide(), 0)
 	cbtn.Paint = function()
+		surface.SetDrawColor(closebtn)
 		if cbtn.Hovered then
-	    	surface.SetDrawColor( 255, 0, 0, 200)
-	    else
-	    	surface.SetDrawColor( 255, 0, 0, 50 )	    	
+	    	surface.SetDrawColor(closebtnhover)
 	    end
 	    surface.DrawRect(1, 1, cbtn:GetWide() - 2, cbtn:GetTall())
-	    draw.SimpleTextOutlined( "X", "Trebuchet24", cbtn:GetWide()/2, cbtn:GetTall()/2, Color(255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, Color( 0, 0, 0, 255 ))
+	    draw.SimpleTextOutlined(close, closefont, cbtn:GetWide()/2, cbtn:GetTall()/2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, color_black)
 	end
 	cbtn.DoClick = function()
 		fr:Close()
@@ -98,13 +122,12 @@ concommand.Add("weapon_slots", function(ply, cmd, args)
 	btn:SetSize(150, 30)
 	btn:SetPos(cbtn.x - btn:GetWide(), 0)
 	btn.Paint = function()
+		surface.SetDrawColor(makechangesbtn)
 		if btn.Hovered then
-	    	surface.SetDrawColor( 48,133,219,220 )
-	    else
-	    	surface.SetDrawColor( 41,123,207,200 )
+	    	surface.SetDrawColor(makechangesbtnhover)
 	    end	    
 	    surface.DrawRect(1, 1, btn:GetWide(), btn:GetTall())
-		draw.SimpleTextOutlined( "Make Changes", "Trebuchet24", btn:GetWide()/2, btn:GetTall()/2, Color(255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, Color( 0, 0, 0, 255 ))
+		draw.SimpleTextOutlined(makechanges, makechangesfont, btn:GetWide()/2, btn:GetTall()/2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, color_black)
 	end
 	local listz = {}
 	btn.DoClick = function()
@@ -125,12 +148,12 @@ concommand.Add("weapon_slots", function(ply, cmd, args)
 	reset:SetSize(150, 30)
 	reset:SetPos(btn.x - reset:GetWide(), 0)
 	reset.Paint = function()
-		surface.SetDrawColor( 41,123,207,200 )
+		surface.SetDrawColor(resetbtn)
 		if reset.Hovered then
-	    	surface.SetDrawColor( 48,133,219,220 )	    	
+	    	surface.SetDrawColor(resetbtnhover)	    	
 	    end
 	    surface.DrawRect( 1, 1, reset:GetWide(), reset:GetTall() )
-	    draw.SimpleTextOutlined( "Reset", "Trebuchet24", reset:GetWide()/2, reset:GetTall()/2, Color(255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, Color( 0, 0, 0, 255 ))
+	    draw.SimpleTextOutlined(resetslots, resetslotsfont, reset:GetWide()/2, reset:GetTall()/2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, color_black)
 
 	end
 	reset.DoClick = function()
@@ -149,9 +172,9 @@ concommand.Add("weapon_slots", function(ply, cmd, args)
 		pnl:SetPos(i * pnl:GetWide(), 30)
 		pnl:SetText("")
 		pnl.Paint = function()
-			surface.SetDrawColor( 41,123,207,200 )
+			surface.SetDrawColor( slotsbtn )
 		    surface.DrawRect( 1, 1, pnl:GetWide(), pnl:GetTall() )
-		    draw.SimpleTextOutlined(i + 1, "Trebuchet24", pnl:GetWide()/2, pnl:GetTall()/2, Color(255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, Color( 0, 0, 0, 255 ))
+		    draw.SimpleTextOutlined(i + 1, slotsfont, pnl:GetWide()/2, pnl:GetTall()/2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, color_black)
 		end
 		local scroll = vgui.Create("WDScrollPanel", fr)
 		scroll:SetSize(pnl:GetWide(), fr:GetTall() - 50)
@@ -161,7 +184,7 @@ concommand.Add("weapon_slots", function(ply, cmd, args)
 		icons:SetSize(pnl:GetWide(), fr:GetTall() - pnl:GetTall())
 		icons:SetPos(pnl.x, 50)
 		icons:SetPaintBackground(true)
-		icons:SetBackgroundColor(Color(55, 55, 55))
+		icons:SetBackgroundColor(swepslotbg)
 		icons:MakeDroppable("WeaponSlots")
 		icons.Index = i
 		icons.OnModified = function()
@@ -174,7 +197,7 @@ concommand.Add("weapon_slots", function(ply, cmd, args)
 		local pnl = icons:Add("DPanel")
 		pnl:SetSize(width, 5)
 		pnl.Paint = function()
-			surface.SetDrawColor( 40, 40, 40, 255 )
+			surface.SetDrawColor(swepslotbg)
 		    surface.DrawRect(1, 1, pnl:GetWide() - 2, pnl:GetTall())
 		end
 		scroll:AddItem(icons)
@@ -187,9 +210,9 @@ concommand.Add("weapon_slots", function(ply, cmd, args)
 			pnl:SetSize(width, fr:GetTall() * 0.1)
 			pnl:SetCursor("hand")
 			pnl.Paint = function()
-				surface.SetDrawColor( 41,123,207,200 )
+				surface.SetDrawColor(swepslotbg)
 				if pnl.Hovered then
-			    	surface.SetDrawColor( 48,133,219,220 )	    	
+			    	surface.SetDrawColor(swepslotbghover)	    	
 			    end
 			    surface.DrawRect(1, 1, pnl:GetWide() - 2, pnl:GetTall())
 			end
