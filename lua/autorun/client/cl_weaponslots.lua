@@ -165,8 +165,8 @@ concommand.Add("weapon_slots", function(ply, cmd, args)
 			fr:Close()
 		end
 	end
-	local width = fr:GetWide() / 6
-	for i=0, 5 do
+	local width = fr:GetWide() / 7
+	for i=0, 6 do
 		local pnl = vgui.Create("DButton", fr)
 		pnl:SetSize(width, 20)
 		pnl:SetPos(i * pnl:GetWide(), 30)
@@ -174,7 +174,11 @@ concommand.Add("weapon_slots", function(ply, cmd, args)
 		pnl.Paint = function()
 			surface.SetDrawColor( slotsbtn )
 		    surface.DrawRect( 1, 1, pnl:GetWide(), pnl:GetTall() )
-		    draw.SimpleTextOutlined(i + 1, slotsfont, pnl:GetWide()/2, pnl:GetTall()/2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, color_black)
+			if i == 6 then 
+				draw.SimpleTextOutlined("Disabled", slotsfont, pnl:GetWide()/2, pnl:GetTall()/2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, color_black)
+			else
+				draw.SimpleTextOutlined(i + 1, slotsfont, pnl:GetWide()/2, pnl:GetTall()/2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, color_black)
+			end
 		end
 		local scroll = vgui.Create("WDScrollPanel", fr)
 		scroll:SetSize(pnl:GetWide(), fr:GetTall() - 50)
@@ -228,6 +232,9 @@ concommand.Add("weapon_slots", function(ply, cmd, args)
 			lbl:SetPos(5, pnl:GetTall() - lbl:GetTall())
 			lbl:SetText( v.PrintName )
 			lbl:SetFont("HudHintTextLarge")
+			if v.Slot == 6 then
+				lbl:SetTextColor( Color( 255, 0, 0) )
+			end
 			lbl:SizeToContents()
 			lbl:SetDark(false)
 		end
