@@ -25,6 +25,23 @@ local titlebarbg 			= Color(41, 123, 207, 100)
 local swepslotbg 			= Color(40, 40, 40, 100)
 local swepslotbghover 		= Color(55, 55, 55, 255)
 
+local HL2 = { // To display HL2 weppons
+	["weapon_ar2"] 			= {"models/weapons/w_irifle.mdl","Pulse Rifle"},
+	["weapon_bugbait"] 		= {"models/weapons/w_bugbait.mdl","Bugbait"},
+	["weapon_crossbow"]		= {"models/weapons/w_crossbow.mdl","Crossbow"},
+	["weapon_crowbar"] 		= {"models/weapons/w_crowbar.mdl","Crowbar"},
+	["weapon_frag"] 		= {"models/weapons/w_grenade.mdl","Grenade"},
+	["weapon_physcannon"]	= {"models/weapons/w_Physics.mdl","Gravity Gun"},
+	["weapon_pistol"] 		= {"models/weapons/w_pistol.mdl","9mm Pistol"},
+	["weapon_357"] 			= {"models/weapons/w_357.mdl",".357 Magnum Revolver"},
+	["weapon_rpg"] 			= {"models/weapons/w_rocket_launcher.mdl","RPG"},
+	["weapon_shotgun"] 		= {"models/weapons/w_shotgun.mdl","Shotgun"},
+	["weapon_slam"] 		= {"models/weapons/w_slam.mdl","S.L.A.M"},
+	["weapon_smg1"] 		= {"models/weapons/w_smg1.mdl","SMG"},
+	["weapon_stunstick"]	= {"models/weapons/w_stunbaton.mdl","Stunstick"},
+	["weapon_physgun"] 		= {"models/weapons/w_Physics.mdl","Physics Gun"},
+}
+
 local function UpdateFile()
 	if !file.IsDir("weapons", "DATA") then
 		file.CreateDir("weapons")
@@ -58,7 +75,7 @@ hook.Add("InitPostEntity", "WeaponSlots.Load", function()
 					local real_wep = weapons.GetStored(class)
 					if real_wep then
 						real_wep.Slot = info[1] 
-						real_wep.SlotPos = info[2] 
+						real_wep.SlotPos = info[2]
 					end
 				end
 			end
@@ -154,7 +171,6 @@ concommand.Add("weapon_slots", function(ply, cmd, args)
 	    end
 	    surface.DrawRect( 1, 1, reset:GetWide(), reset:GetTall() )
 	    draw.SimpleTextOutlined(resetslots, resetslotsfont, reset:GetWide()/2, reset:GetTall()/2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, color_black)
-
 	end
 	reset.DoClick = function()
 		local confirm = vgui.Create("WDConfirm")
@@ -165,16 +181,22 @@ concommand.Add("weapon_slots", function(ply, cmd, args)
 			fr:Close()
 		end
 	end
+
 	local width = fr:GetWide() / 7
-	for i=0, 6 do
+	for i=0, 7 do
+		if i == 6 then continue end
 		local pnl = vgui.Create("DButton", fr)
 		pnl:SetSize(width, 20)
-		pnl:SetPos(i * pnl:GetWide(), 30)
+		if i == 7 then 
+			pnl:SetPos(6 * pnl:GetWide(), 30)
+		else
+			pnl:SetPos(i * pnl:GetWide(), 30)
+		end
 		pnl:SetText("")
 		pnl.Paint = function()
 			surface.SetDrawColor( slotsbtn )
 		    surface.DrawRect( 1, 1, pnl:GetWide(), pnl:GetTall() )
-			if i == 6 then 
+			if i == 7 then 
 				draw.SimpleTextOutlined("Disabled", slotsfont, pnl:GetWide()/2, pnl:GetTall()/2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, color_black)
 			else
 				draw.SimpleTextOutlined(i + 1, slotsfont, pnl:GetWide()/2, pnl:GetTall()/2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, color_black)
@@ -209,6 +231,27 @@ concommand.Add("weapon_slots", function(ply, cmd, args)
 	end
 
 	for k, v in SortedPairsByMemberValue(LocalPlayer():GetWeapons(), "SlotPos") do
+		if HL2[v:GetClass()] then
+			local pnl = v:GetSlot() and listz[v:GetSlot()]:Add("DPanel")
+			pnl:SetSize(width, fr:GetTall() * 0.1)
+			pnl:SetDisabled(1)
+			pnl.Paint = function()
+				surface.SetDrawColor(swepslotbg)
+			    surface.DrawRect(1, 1, pnl:GetWide() - 2, pnl:GetTall())
+			end
+			pnl.Weapon = v:GetClass()
+			local icon = vgui.Create("SpawnIcon", pnl)
+			icon:SetModel(HL2[v:GetClass()][1] or "models/props_lab/clipboard.mdl")
+			icon:SetSize(pnl:GetSize())
+			icon:SetMouseInputEnabled(false)
+			local lbl = vgui.Create( "DLabel", pnl)
+			lbl:SetPos(5, pnl:GetTall() - lbl:GetTall())
+			lbl:SetText( HL2[v:GetClass()][2] )
+			lbl:SetFont("HudHintTextLarge")
+			lbl:SetTextColor( Color(239, 163, 14, 220) )
+			lbl:SizeToContents()
+			lbl:SetDark(false)
+		end
 		if v.Slot && listz[v.Slot] then
 			local pnl = v.Slot and listz[v.Slot]:Add("DPanel")
 			pnl:SetSize(width, fr:GetTall() * 0.1)
@@ -232,7 +275,7 @@ concommand.Add("weapon_slots", function(ply, cmd, args)
 			lbl:SetPos(5, pnl:GetTall() - lbl:GetTall())
 			lbl:SetText( v.PrintName )
 			lbl:SetFont("HudHintTextLarge")
-			if v.Slot == 6 then
+			if v.Slot == 7 then
 				lbl:SetTextColor( Color( 255, 0, 0) )
 			end
 			lbl:SizeToContents()
