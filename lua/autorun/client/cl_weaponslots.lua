@@ -42,6 +42,31 @@ local HL2 = { // To display HL2 weppons
 	["weapon_physgun"] 		= {"models/weapons/w_Physics.mdl","Physics Gun"},
 }
 
+CreateClientConVar("weapon_slots_oncontextmenu", 1, true, false,"Toggles Weapon Slots On Context Menu",0,1)
+
+list.Set( "DesktopWindows", "weapon_slots", {
+	title = "Weapon Slots",
+	icon = "weapons/swep.png",	//icon = "icon16/gun.png",
+	init = function( icon, window )
+		if GetConVar("weapon_slots_oncontextmenu"):GetInt() == 0 then
+			RunConsoleCommand("weapon_slots_oncontextmenu", "1")
+			RunConsoleCommand("weapon_slots")
+		end
+		if GetConVar("weapon_slots_oncontextmenu"):GetInt() == 1 then 
+			if wepfr and IsValid(wepfr) then wepfr:Close() wepfr = nil end
+			RunConsoleCommand("weapon_slots_oncontextmenu", "0")
+		end
+	end
+} )
+
+hook.Add("OnContextMenuOpen", "WeaponSlots.Open", function()
+	if GetConVar("weapon_slots_oncontextmenu"):GetInt() == 1 then RunConsoleCommand("weapon_slots") end
+end)
+
+hook.Add("OnContextMenuClose", "WeaponSlots.Open", function()
+	if wepfr and IsValid(wepfr) then wepfr:Close() wepfr = nil end
+end)
+
 local function UpdateFile()
 	if !file.IsDir("weapons", "DATA") then
 		file.CreateDir("weapons")
