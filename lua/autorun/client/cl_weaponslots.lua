@@ -1,15 +1,21 @@
 WeaponSlots = WeaponSlots || {}
 
 // Config
-local makechanges 			= "Make Changes"
+local framewidth			= ScrW() * 0.8
+local frameheight			= ScrH() * 0.95
+
+local chatprefix			= "Weapon Slots"
+local chatprefixcolor		= Color(41, 123, 207, 255)
+
+local makechangestxt 		= "Save Changes"
 local makechangesfont		= "Trebuchet24" 
 local makechangesbtn 		= Color(41, 123, 207, 100)
 local makechangesbtnhover 	= Color(48, 133, 219, 220)
 
 local resetslots 			= "Reset"
 local resetslotsfont		= "Trebuchet24" 
-local resetbtn 				= Color(41, 123, 207, 100)
-local resetbtnhover 		= Color(48, 133, 219, 220)
+local resetbtn 				= Color(255, 0, 0, 125)
+local resetbtnhover 		= Color(255, 0, 0, 175)
 
 local close 				= "X"
 local closefont				= "Trebuchet24" 
@@ -43,6 +49,7 @@ local HL2 = { // To display HL2 weppons
 }
 
 CreateClientConVar("weapon_slots_oncontextmenu", 1, true, false,"Toggles Weapon Slots On Context Menu",0,1)
+CreateClientConVar("weapon_slots_autorespawn", 1, true, false,"Toggles Auto Respawn Request Box On First Connect",0,1) // This setting will update the ingame slots with your saved layout.
 
 list.Set( "DesktopWindows", "weapon_slots", {
 	title = "Weapon Slots",
@@ -88,24 +95,35 @@ concommand.Add("reset_weapon_slots", function(ply, cmd, args)
 	if file.Exists("weapons/weapon_slots.dat", "DATA") then
 		file.Delete("weapons/weapon_slots.dat")
 	end
-	LocalPlayer():ChatPrint( "Your settings have been removed, please relog so weapons can go back to their default slots." )
+	chat.AddText(chatprefixcolor, chatprefix .. " | ", color_white, "Your settings have been removed, please relog so weapons can go back to their default slots.")
 end)
 
 hook.Add("InitPostEntity", "WeaponSlots.Load", function()
-	if file.Exists("weapons/weapon_slots.dat", "DATA") then
-		local data = file.AsyncRead("weapons/weapon_slots.dat", "DATA", function(x, y, status, data)
-			if status == FSASYNC_OK then
-				WeaponSlots = util.JSONToTable(data)
-				for class, info in pairs(WeaponSlots) do
-					local real_wep = weapons.GetStored(class)
-					if real_wep then
-						real_wep.Slot = info[1] 
-						real_wep.SlotPos = info[2]
+		if file.Exists("weapons/weapon_slots.dat", "DATA") then
+			local data = file.AsyncRead("weapons/weapon_slots.dat", "DATA", function(x, y, status, data)
+				if ( status == FSASYNC_OK ) then
+					WeaponSlots = util.JSONToTable(data)
+					for class, info in pairs(WeaponSlots) do
+						local real_wep = weapons.GetStored(class)
+						if real_wep then
+							real_wep.Slot = info[1] 
+							real_wep.SlotPos = info[2]
+						end
 					end
 				end
+			end)
+		end
+		if GetConVar("weapon_slots_autorespawn"):GetInt() == 1 then
+			local confirmrs = vgui.Create("WDConfirm")
+			confirmrs:SetQuestion("To Load Initial Weapon Slot Locations\nYou Will Need To Do An Initial Respawn.")
+			confirmrs.OnYes = function()
+				RunConsoleCommand("kill")
+				confirmrs:Remove()
 			end
-		end)
-	end
+		else
+			chat.AddText(chatprefixcolor, chatprefix .. " | ", color_white, "You Will Need To Manually Respawn To Apply Weapon Slot Locations.")		
+		end
+		
 end)
 
 local function MakeChanges(tbl)
@@ -119,14 +137,14 @@ local function MakeChanges(tbl)
 			end
 		end
 	end
-	LocalPlayer():ChatPrint( "Weapon slots updated. Respawn to apply updates." )
+	chat.AddText(chatprefixcolor, chatprefix .. " | ", color_white, "Weapon slots updated. Respawn to apply updates.")
 end
 
 concommand.Add("weapon_slots", function(ply, cmd, args)
 	if wepfr and IsValid(wepfr) then wepfr:Close() wepfr = nil end
 	local fr = vgui.Create("WDFrame")
 	wepfr = fr
-	fr:SetSize(ScrW() * 0.6, ScrH() * 0.9)
+	fr:SetSize(framewidth, frameheight)
 	fr:ShowCloseButton(false)
 	fr:Center()
 	fr:SetTitle("")
@@ -162,6 +180,7 @@ concommand.Add("weapon_slots", function(ply, cmd, args)
 	local btn = vgui.Create("DButton", fr)
 	btn:SetText("")
 	btn:SetSize(150, 30)
+	btn:SetTooltip("Will Save Current Selections.")
 	btn:SetPos(cbtn.x - btn:GetWide(), 0)
 	btn.Paint = function()
 		surface.SetDrawColor(makechangesbtn)
@@ -169,7 +188,7 @@ concommand.Add("weapon_slots", function(ply, cmd, args)
 	    	surface.SetDrawColor(makechangesbtnhover)
 	    end	    
 	    surface.DrawRect(1, 1, btn:GetWide(), btn:GetTall())
-		draw.SimpleTextOutlined(makechanges, makechangesfont, btn:GetWide()/2, btn:GetTall()/2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, color_black)
+		draw.SimpleTextOutlined(makechangestxt, makechangesfont, btn:GetWide()/2, btn:GetTall()/2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, color_black)
 	end
 	local listz = {}
 	btn.DoClick = function()
@@ -185,6 +204,7 @@ concommand.Add("weapon_slots", function(ply, cmd, args)
 		MakeChanges(changes)
 		fr:Close()
 	end
+	
 	local reset = vgui.Create("DButton", fr)
 	reset:SetText("")
 	reset:SetSize(150, 30)
@@ -207,13 +227,13 @@ concommand.Add("weapon_slots", function(ply, cmd, args)
 		end
 	end
 
-	local width = fr:GetWide() / 7
-	for i=0, 7 do
-		if i == 6 then continue end
+	local width = fr:GetWide() / 11
+	for i=0, 11 do
+		if i == 10 then continue end
 		local pnl = vgui.Create("DButton", fr)
 		pnl:SetSize(width, 20)
-		if i == 7 then 
-			pnl:SetPos(6 * pnl:GetWide(), 30)
+		if i == 11 then 
+			pnl:SetPos(10 * pnl:GetWide(), 30)
 		else
 			pnl:SetPos(i * pnl:GetWide(), 30)
 		end
@@ -221,7 +241,7 @@ concommand.Add("weapon_slots", function(ply, cmd, args)
 		pnl.Paint = function()
 			surface.SetDrawColor( slotsbtn )
 		    surface.DrawRect( 1, 1, pnl:GetWide(), pnl:GetTall() )
-			if i == 7 then 
+			if i == 11 then 
 				draw.SimpleTextOutlined("Disabled", slotsfont, pnl:GetWide()/2, pnl:GetTall()/2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, color_black)
 			else
 				draw.SimpleTextOutlined(i + 1, slotsfont, pnl:GetWide()/2, pnl:GetTall()/2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, color_black)
@@ -270,10 +290,10 @@ concommand.Add("weapon_slots", function(ply, cmd, args)
 			icon:SetSize(pnl:GetSize())
 			icon:SetMouseInputEnabled(false)
 			local lbl = vgui.Create( "DLabel", pnl)
-			lbl:SetPos(5, pnl:GetTall() - lbl:GetTall())
+			lbl:SetPos(5, pnl:GetTall() - lbl:GetTall() - 5)
 			lbl:SetText( HL2[v:GetClass()][2] )
 			lbl:SetFont("HudHintTextLarge")
-			lbl:SetTextColor( Color(239, 163, 14, 220) )
+			lbl:SetTextColor( Color(255, 255, 255, 255) )
 			lbl:SizeToContents()
 			lbl:SetDark(false)
 		end
@@ -288,19 +308,21 @@ concommand.Add("weapon_slots", function(ply, cmd, args)
 			    end
 			    surface.DrawRect(1, 1, pnl:GetWide() - 2, pnl:GetTall())
 			end
+
 			pnl.Weapon = v
 			local icon = vgui.Create("SpawnIcon", pnl)
 			icon:SetModel(v.WorldModel != "" and v.WorldModel or "models/props_lab/clipboard.mdl")
 			icon:SetSize(pnl:GetSize())
 			icon:SetMouseInputEnabled(false)
 			icon.Paint = function()
-			    surface.DrawRect(1, 1, icon:GetWide(), icon:GetTall())
+			    surface.DrawRect(0.5, 0.5, icon:GetWide(), icon:GetTall())
 			end
+
 			local lbl = vgui.Create( "DLabel", pnl)
-			lbl:SetPos(5, pnl:GetTall() - lbl:GetTall())
+			lbl:SetPos(5, pnl:GetTall() - lbl:GetTall() - 5)
 			lbl:SetText( v.PrintName )
 			lbl:SetFont("HudHintTextLarge")
-			if v.Slot == 7 then
+			if v.Slot == 11 then
 				lbl:SetTextColor( Color( 255, 0, 0) )
 			end
 			lbl:SizeToContents()
